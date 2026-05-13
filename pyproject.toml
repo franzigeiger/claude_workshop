@@ -5,8 +5,20 @@ description = "Turn an inbox of paperwork into a searchable document library."
 requires-python = ">=3.14"
 readme = "README.md"
 dependencies = [
+  "anthropic>=0.50",
   "httpx>=0.28",
   "pydantic>=2.10",
+  "pypdf>=5",
+  "python-dotenv>=1.0",
+  "pyyaml>=6.0",
+  "typer>=0.15",
+]
+
+[project.optional-dependencies]
+ocr = [
+  "pdf2image>=1.17",
+  "Pillow>=11",
+  "pytesseract>=0.3",
 ]
 
 [project.scripts]
@@ -14,10 +26,11 @@ paperclaw = "paperclaw.__main__:main"
 
 [dependency-groups]
 dev = [
-  "ruff>=0.8",
+  "deptry>=0.21",
   "mypy>=1.13",
   "pytest>=8.3",
-  "deptry>=0.21",
+  "ruff>=0.8",
+  "types-PyYAML>=6.0",
 ]
 
 [build-system]
@@ -60,6 +73,11 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_any_explicit = true
 files = ["src", "tests"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = "paperclaw.ingest.classify"
+disallow_any_explicit = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -67,3 +85,5 @@ addopts = "-ra"
 
 [tool.deptry]
 known_first_party = ["paperclaw"]
+# httpx: part of the stated stack (AGENTS.md) for future HTTP calls; Pillow: transitive via pdf2image
+per_rule_ignores = {DEP002 = ["httpx", "Pillow"]}

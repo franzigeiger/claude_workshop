@@ -1,0 +1,22 @@
+version: 1
+
+# kind: what the document *is* → plural folder name used in ~/library/
+kinds:
+  invoice: invoices
+  statement: statements
+  letter: letters
+  contract: contracts
+  receipt: receipts
+  notice: notices
+  other: other
+
+# topic: what the document *concerns* (optional — null is fine)
+topics:
+  - utility
+  - bank
+  - insurance
+  - tax
+  - employer
+  - health
+  - government
+  - private
