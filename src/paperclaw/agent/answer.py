@@ -34,7 +34,7 @@ def _build_context(results: list[SearchResult]) -> str:
             f" | {meta.get('issuer', 'unknown issuer')}"
             f" | {meta.get('doc_date', 'n/a')}"
         )
-        parts.append(f"{header}\n{r.text[:800]}")
+        parts.append(f"{header}\n{r.text[:4000]}")
     return "\n\n---\n\n".join(parts)
 
 

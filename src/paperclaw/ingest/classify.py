@@ -1,5 +1,7 @@
 import importlib.resources
+import json
 import logging
+import re
 from functools import lru_cache
 from typing import TypedDict, cast
 
@@ -28,38 +30,6 @@ class Classification(BaseModel):
     notes: str
 
 
-_CLASSIFICATION_SCHEMA: dict[str, object] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "kind": {"type": "string"},
-        "topic": {"type": ["string", "null"]},
-        "doc_date": {
-            "type": ["string", "null"],
-            "description": "ISO 8601 date YYYY-MM-DD, or null if unknown",
-        },
-        "issuer": {"type": ["string", "null"]},
-        "short_desc": {
-            "type": ["string", "null"],
-            "description": "≤40 chars, lowercase, hyphens ok",
-        },
-        "summary": {"type": "string", "description": "1-2 sentence human-readable description"},
-        "confidence": {"type": "number"},
-        "notes": {"type": "string", "description": "Explains any uncertainty"},
-    },
-    "required": [
-        "kind",
-        "topic",
-        "doc_date",
-        "issuer",
-        "short_desc",
-        "summary",
-        "confidence",
-        "notes",
-    ],
-}
-
-
 @lru_cache(maxsize=1)
 def load_taxonomy() -> Taxonomy:
     pkg = importlib.resources.files("paperclaw")
@@ -73,7 +43,8 @@ def _build_system_prompt() -> str:
     kinds = ", ".join(tax["kinds"])
     topics = ", ".join(tax["topics"])
     return (
-        "You are a document classifier. Analyse the document text and return a JSON object.\n\n"
+        "You are a document classifier. Analyse the document text and return ONLY a raw JSON object"
+        " — no markdown, no code fences, no explanation.\n\n"
         f"Allowed `kind` values: {kinds}\n"
         f"Allowed `topic` values: {topics} (or null)\n\n"
         "Rules:\n"
@@ -88,8 +59,14 @@ def _build_system_prompt() -> str:
     )
 
 
+def _extract_json(raw: str) -> str:
+    """Strip markdown code fences if present, then return the JSON string."""
+    stripped = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip(), flags=re.DOTALL)
+    return stripped.strip()
+
+
 def classify(text: str, backend: LLMBackend) -> Classification:
     """Classify a document's plain text via the given LLM backend."""
     system = _build_system_prompt()
-    raw = backend.chat(system, text, json_schema=_CLASSIFICATION_SCHEMA)
-    return Classification.model_validate_json(raw)
+    raw = backend.chat(system, text)
+    return Classification.model_validate(json.loads(_extract_json(raw)))
