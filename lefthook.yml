@@ -1,0 +1,21 @@
+pre-commit:
+  parallel: true
+  commands:
+    gitleaks:
+      run: mise x -- gitleaks protect --staged --no-banner --redact
+    format:
+      glob: "*.py"
+      run: mise x -- uv run ruff format {staged_files}
+      stage_fixed: true
+    lint:
+      glob: "*.py"
+      run: mise x -- uv run ruff check --fix {staged_files}
+      stage_fixed: true
+    typecheck:
+      glob: "*.py"
+      run: mise x -- uv run mypy src tests
+
+pre-push:
+  commands:
+    test:
+      run: mise x -- uv run pytest -q
