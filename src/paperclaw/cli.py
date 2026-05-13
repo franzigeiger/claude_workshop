@@ -23,7 +23,7 @@ app = typer.Typer(name="paperclaw", no_args_is_help=True, add_completion=False)
 log = logging.getLogger(__name__)
 
 _DEFAULT_INBOX = "~/inbox"
-_DEFAULT_LIBRARY = "~/library"
+_DEFAULT_LIBRARY = "~/Documents/paperclaw-library"
 _DEFAULT_HOME = "~/.paperclaw"
 
 

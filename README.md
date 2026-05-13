@@ -33,5 +33,5 @@ Copy `.env.example` to `.env` and set:
 
 - `ANTHROPIC_API_KEY` — required for classification and Q&A
 - `PAPERCLAW_INBOX` — source folder (default: `~/inbox`)
-- `PAPERCLAW_LIBRARY` — destination folder (default: `~/library`)
+- `PAPERCLAW_LIBRARY` — destination folder (default: `~/Documents/paperclaw-library`)
 - `LOG_LEVEL` — verbosity: `DEBUG | INFO | WARNING | ERROR`

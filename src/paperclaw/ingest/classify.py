@@ -30,6 +30,7 @@ class Classification(BaseModel):
 
 _CLASSIFICATION_SCHEMA: dict[str, object] = {
     "type": "object",
+    "additionalProperties": False,
     "properties": {
         "kind": {"type": "string"},
         "topic": {"type": ["string", "null"]},
@@ -43,7 +44,7 @@ _CLASSIFICATION_SCHEMA: dict[str, object] = {
             "description": "≤40 chars, lowercase, hyphens ok",
         },
         "summary": {"type": "string", "description": "1-2 sentence human-readable description"},
-        "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "confidence": {"type": "number"},
         "notes": {"type": "string", "description": "Explains any uncertainty"},
     },
     "required": [

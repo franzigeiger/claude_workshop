@@ -43,9 +43,8 @@ class AnthropicBackend:
 
         if json_schema is not None:
             output_config: anthropic.types.OutputConfigParam = {
-                "format": {  # type: ignore[typeddict-item]
+                "format": {
                     "type": "json_schema",
-                    "name": "result",
                     "schema": json_schema,
                 }
             }
