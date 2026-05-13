@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "bootstrap-project": {
+      "source": "bettervibe-org/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/bootstrap-project/skills/bootstrap-project/SKILL.md",
+      "computedHash": "c970a260c938ab3242e585907c04051078fac8016aaaade8d3c443e05df2a663"
+    }
+  }
+}

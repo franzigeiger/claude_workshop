@@ -6,11 +6,13 @@ requires-python = ">=3.14"
 readme = "README.md"
 dependencies = [
   "anthropic>=0.50",
+  "chromadb>=0.5",
   "httpx>=0.28",
   "pydantic>=2.10",
   "pypdf>=5",
   "python-dotenv>=1.0",
   "pyyaml>=6.0",
+  "sentence-transformers>=3.0",
   "typer>=0.15",
 ]
 
@@ -60,7 +62,7 @@ select = [
   "ARG",      # unused arguments
   "ERA",      # commented-out code
 ]
-ignore = ["PLR2004"]
+ignore = ["PLR2004", "PLR0913"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["PLR2004", "ARG"]
@@ -76,7 +78,7 @@ files = ["src", "tests"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = "paperclaw.ingest.classify"
+module = ["paperclaw.ingest.classify", "paperclaw.store.index"]
 disallow_any_explicit = false
 
 [tool.pytest.ini_options]
