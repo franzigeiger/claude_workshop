@@ -10,14 +10,10 @@ from paperclaw.store.index import SearchResult
 class FakeBackend:
     def __init__(self, reply: str = "The answer is 42.") -> None:
         self._reply = reply
+        self.last_user: str = ""
 
-    def chat(
-        self,
-        system: str,
-        user: str,
-        *,
-        json_schema: dict[str, object] | None = None,
-    ) -> str:
+    def chat(self, system: str, user: str, **_: object) -> str:
+        self.last_user = user
         return self._reply
 
 
@@ -83,3 +79,26 @@ def test_answer_passes_filters_to_query(monkeypatch: pytest.MonkeyPatch) -> None
     monkeypatch.setattr("paperclaw.agent.answer.query", _capture)
     answer("question", _fake_collection(), FakeBackend(), _fake_embed, filters={"kind": "invoice"})
     assert captured.get("filters") == {"kind": "invoice"}
+
+
+def test_answer_truncates_long_text_to_4000_chars(monkeypatch: pytest.MonkeyPatch) -> None:
+    long_result = SearchResult(
+        doc_id="invoices/2024/big",
+        text="x" * 6000,
+        distance=0.1,
+        metadata={
+            "kind": "invoice",
+            "topic": "",
+            "doc_date": "",
+            "year": "",
+            "issuer": "",
+            "confidence": 0.9,
+            "needs_review": False,
+            "source_pdf": "",
+        },
+    )
+    monkeypatch.setattr("paperclaw.agent.answer.query", lambda *a, **kw: [long_result])
+    backend = FakeBackend()
+    answer("question", _fake_collection(), backend, _fake_embed)
+    assert "x" * 4000 in backend.last_user
+    assert "x" * 4001 not in backend.last_user

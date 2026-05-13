@@ -1,20 +1,16 @@
 import json
 
-from paperclaw.ingest.classify import Classification, classify
+from paperclaw.ingest.classify import Classification, _extract_json, classify
 
 
 class FakeBackend:
-    def __init__(self, payload: dict[str, object]) -> None:
+    def __init__(self, payload: dict[str, object], *, wrap_in_fences: bool = False) -> None:
         self._payload = payload
+        self._wrap = wrap_in_fences
 
-    def chat(
-        self,
-        system: str,
-        user: str,
-        *,
-        json_schema: dict[str, object] | None = None,
-    ) -> str:
-        return json.dumps(self._payload)
+    def chat(self, system: str, user: str, **_: object) -> str:
+        raw = json.dumps(self._payload)
+        return f"```json\n{raw}\n```" if self._wrap else raw
 
 
 def _invoice_payload() -> dict[str, object]:
@@ -65,3 +61,20 @@ def test_classify_low_confidence_still_returns() -> None:
     payload["confidence"] = 0.35
     result = classify("ambiguous text", FakeBackend(payload))
     assert result.confidence < 0.6
+
+
+def test_classify_strips_markdown_fences() -> None:
+    result = classify("invoice text", FakeBackend(_invoice_payload(), wrap_in_fences=True))
+    assert result.kind == "invoice"
+
+
+def test_extract_json_plain() -> None:
+    assert _extract_json('{"a": 1}') == '{"a": 1}'
+
+
+def test_extract_json_strips_json_fence() -> None:
+    assert _extract_json("```json\n{}\n```") == "{}"
+
+
+def test_extract_json_strips_plain_fence() -> None:
+    assert _extract_json("```\n{}\n```") == "{}"
