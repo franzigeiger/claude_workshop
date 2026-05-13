@@ -1,18 +1,9 @@
-import logging
-import os
-import sys
+from paperclaw.cli import app
 
 
-def main() -> int:
-    logging.basicConfig(
-        level=os.environ.get("LOG_LEVEL", "INFO"),
-        stream=sys.stdout,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    )
-    log = logging.getLogger("paperclaw")
-    log.info("paperclaw scaffold ready")
-    return 0
+def main() -> None:
+    app()
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
