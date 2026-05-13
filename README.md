@@ -27,6 +27,28 @@ uv run paperclaw
 | `mise run fmt` | Auto-format all Python files |
 | `uv run pytest` | Run tests only |
 
+## Using with Claude agents (MCP)
+
+Run the MCP server so any MCP-compatible agent (Claude Code, Claude Desktop) can call `ingest`, `ask`, and `reindex` as tools:
+
+```sh
+# Add to Claude Code
+claude mcp add paperclaw -- uv run paperclaw-mcp
+```
+
+Or add to `~/.config/claude/claude_desktop_config.json` for Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "paperclaw": {
+      "command": "uv",
+      "args": ["run", "--directory", "/path/to/paperclaw", "paperclaw-mcp"]
+    }
+  }
+}
+```
+
 ## Configuration
 
 Copy `.env.example` to `.env` and set:

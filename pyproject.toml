@@ -8,6 +8,7 @@ dependencies = [
   "anthropic>=0.50",
   "chromadb>=0.5",
   "httpx>=0.28",
+  "mcp>=1.0",
   "pydantic>=2.10",
   "pypdf>=5",
   "python-dotenv>=1.0",
@@ -25,6 +26,7 @@ ocr = [
 
 [project.scripts]
 paperclaw = "paperclaw.__main__:main"
+paperclaw-mcp = "paperclaw.mcp_server:main"
 
 [dependency-groups]
 dev = [
