@@ -7,8 +7,14 @@ from typing import Annotated
 import typer
 from dotenv import load_dotenv
 
+from paperclaw.agent.anthropic_backend import AnthropicBackend
+from paperclaw.ingest.pipeline import run
+
 app = typer.Typer(name="paperclaw", no_args_is_help=True, add_completion=False)
 log = logging.getLogger(__name__)
+
+_DEFAULT_INBOX = "~/inbox"
+_DEFAULT_LIBRARY = "~/library"
 
 
 @app.callback()
@@ -22,18 +28,41 @@ def _setup(
 @app.command()
 def ingest(
     inbox: Annotated[
-        Path, typer.Argument(help="Folder of PDFs to classify and move to the library.")
-    ],
+        Path | None,
+        typer.Argument(help="Folder of PDFs to classify. Defaults to PAPERCLAW_INBOX or ~/inbox."),
+    ] = None,
+    library: Annotated[
+        Path | None,
+        typer.Option(
+            "--library", "-l", help="Library root. Defaults to PAPERCLAW_LIBRARY or ~/library."
+        ),
+    ] = None,
 ) -> None:
-    """Extract and classify every PDF in INBOX."""
-    if not inbox.is_dir():
-        typer.echo(f"error: {inbox} is not a directory", err=True)
+    """Extract and classify every PDF in INBOX, writing results to the library."""
+    load_dotenv()
+    inbox_path = inbox or Path(os.environ.get("PAPERCLAW_INBOX", _DEFAULT_INBOX)).expanduser()
+    library_path = (
+        library or Path(os.environ.get("PAPERCLAW_LIBRARY", _DEFAULT_LIBRARY)).expanduser()
+    )
+
+    if not inbox_path.is_dir():
+        typer.echo(f"error: inbox {inbox_path} is not a directory", err=True)
         raise typer.Exit(2)
-    pdfs = list(inbox.glob("*.pdf"))
-    if not pdfs:
-        typer.echo(f"No PDFs found in {inbox}.", err=True)
-        raise typer.Exit(3)
-    typer.echo(f"Found {len(pdfs)} PDF(s) in {inbox} — full pipeline coming soon.")
+
+    try:
+        backend = AnthropicBackend()
+    except RuntimeError as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+    result = run(inbox_path, library_path, backend)
+
+    typer.echo(
+        f"Done: {result.total} PDF(s) found, "
+        f"{result.added} added, {result.skipped} skipped, {result.failed} failed."
+    )
+    if result.failed:
+        raise typer.Exit(4)
 
 
 @app.command()

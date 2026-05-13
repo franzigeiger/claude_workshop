@@ -60,7 +60,7 @@ _CLASSIFICATION_SCHEMA: dict[str, object] = {
 
 
 @lru_cache(maxsize=1)
-def _load_taxonomy() -> Taxonomy:
+def load_taxonomy() -> Taxonomy:
     pkg = importlib.resources.files("paperclaw")
     text = (pkg / "categories.yaml").read_text(encoding="utf-8")
     return cast(Taxonomy, yaml.safe_load(text))
@@ -68,7 +68,7 @@ def _load_taxonomy() -> Taxonomy:
 
 @lru_cache(maxsize=1)
 def _build_system_prompt() -> str:
-    tax = _load_taxonomy()
+    tax = load_taxonomy()
     kinds = ", ".join(tax["kinds"])
     topics = ", ".join(tax["topics"])
     return (
