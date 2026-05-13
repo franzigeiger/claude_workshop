@@ -14,8 +14,16 @@ pre-commit:
     typecheck:
       glob: "*.py"
       run: mise x -- uv run mypy src tests
+    docs-drift:
+      glob: "src/**/*.py"
+      run: >
+        git diff --cached --name-only
+        | grep -qE '^content/(design|project)\.md$'
+        || echo "⚠  Python staged without doc update — is content/design.md or content/project.md current?"
 
 pre-push:
   commands:
     test:
       run: mise x -- uv run pytest -q
+    danger:
+      run: mise x -- uv run python scripts/danger_check.py

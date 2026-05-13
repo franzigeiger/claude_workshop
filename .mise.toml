@@ -27,3 +27,7 @@ run = [
 [tasks.fmt]
 description = "Apply formatter"
 run = "uv run ruff format ."
+
+[tasks.review]
+description = "Run agentic review panel (security, correctness, architecture) over the current diff"
+run = "uv run python scripts/review.py"

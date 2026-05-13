@@ -23,3 +23,16 @@ format + lint, mypy strict, pytest. HTTP calls via `httpx`; data shapes via
   `LOG_LEVEL`. Do not open a `FileHandler`.
 - **`ANTHROPIC_API_KEY` comes from the environment, never from code.**
   Do not hardcode or default it. Fail fast with a clear message if it is unset.
+
+## Hooks and guardrails
+
+- **docs-drift (pre-commit):** fires when `src/**/*.py` is staged. Warns if neither
+  `content/design.md` nor `content/project.md` is also staged. It checks with
+  `git diff --cached --name-only | grep -qE '^content/(design|project)\.md$'` — update
+  a doc file to silence it.
+- **danger (pre-push):** blocks pushes that touch `src/paperclaw/store/**` or
+  `categories.yaml` unless `PAPERCLAW_DANGER_OK=1` is set. Work through the printed
+  checklist before setting that flag.
+- **review panel:** `mise run review` runs three specialist Claude agents (security,
+  correctness, architecture) over the current branch diff. Run it before opening a PR.
+  See `REVIEW.md` for the list of intentional patterns reviewers should skip.
