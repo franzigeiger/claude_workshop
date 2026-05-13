@@ -51,11 +51,19 @@ def ingest(
             "--library", "-l", help="Library root. Defaults to PAPERCLAW_LIBRARY or ~/library."
         ),
     ] = None,
+    home: Annotated[
+        Path | None,
+        typer.Option(
+            "--home", help="paperclaw data dir. Defaults to PAPERCLAW_HOME or ~/.paperclaw."
+        ),
+    ] = None,
 ) -> None:
     """Extract and classify every PDF in INBOX, writing results to the library."""
     load_dotenv()
     inbox_path = _resolve("PAPERCLAW_INBOX", _DEFAULT_INBOX, inbox)
     library_path = _resolve("PAPERCLAW_LIBRARY", _DEFAULT_LIBRARY, library)
+    home_path = _resolve("PAPERCLAW_HOME", _DEFAULT_HOME, home)
+    chroma_path = home_path / "chroma"
 
     if not inbox_path.is_dir():
         typer.echo(f"error: inbox {inbox_path} is not a directory", err=True)
@@ -72,6 +80,32 @@ def ingest(
         f"Done: {result.total} PDF(s) found, "
         f"{result.added} added, {result.skipped} skipped, {result.failed} failed."
     )
+
+    if result.added:
+        collection = get_collection(get_client(chroma_path))
+        for doc in result.documents:
+            md_path = Path(doc.dest).with_suffix(".md")
+            content = md_path.read_text(encoding="utf-8")
+            parts = content.split("---\n", 2)
+            if len(parts) < 3:
+                continue
+            frontmatter: dict[str, object] = yaml.safe_load(parts[1]) or {}
+            text = parts[2].strip()
+            doc_id = str(md_path.relative_to(library_path).with_suffix(""))
+            doc_date: str = str(frontmatter.get("doc_date") or "")
+            metadata: dict[str, str | int | float | bool] = {
+                "kind": str(frontmatter.get("kind") or "other"),
+                "topic": str(frontmatter.get("topic") or ""),
+                "doc_date": doc_date,
+                "year": doc_date[:4] if len(doc_date) >= 4 else "",
+                "issuer": str(frontmatter.get("issuer") or ""),
+                "confidence": float(str(frontmatter.get("confidence") or "0.0")),
+                "needs_review": bool(frontmatter.get("needs_review")),
+                "source_pdf": str(frontmatter.get("source_pdf") or ""),
+            }
+            add_document(collection, doc_id, text, metadata, default_embed)
+        typer.echo(f"Indexed {result.added} document(s).")
+
     if result.failed:
         raise typer.Exit(4)
 
